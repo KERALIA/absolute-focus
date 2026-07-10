@@ -4,6 +4,16 @@ A premium, dual-layer userscript engineered to enforce persistent tab visibility
 
 ---
 
+## 🎯 Intended Use Cases & Professional Applications
+
+This utility was developed to address critical limitations in modern web architectures, serving three primary professional use cases:
+
+* **Data Privacy & Telemetry Mitigation:** Many modern platforms aggressively track micro-interactions—such as exact tab switching frequencies, window resizing, and mouse-leave metrics—to build invasive behavioral profiling vectors. This script restores user data autonomy by sanitizing these tracking payloads before they leave the browser.
+* **Developer Testing & Frontend Diagnostics:** When debugging complex asynchronous applications, web workers, canvas animations, or polling loops, switching to the browser developer tools often pauses execution due to the Page Visibility API. This tool allows engineers to simulate a permanently active viewport to test state-machine stability under continuous load.
+* **Accessibility & Focus Continuity:** For neurodivergent individuals or professionals balancing multi-monitor workflows, native web restrictions that freeze, pause, or throw disruptive modal blocks when switching windows can severely fracture focus. This script enforces layout stability across all workspaces.
+
+---
+
 ## 💾 Installation Instructions
 
 > ⚠️ **CRITICAL REQUIREMENT:** You **MUST** ensure Tampermonkey is installed and properly configured in Google Chrome, Chromium-based browsers (such as Brave, Edge, Opera), or Mozilla Firefox using Steps 1 and 2 *before* clicking the installation link in Step 3. If you bypass the extension setup, the browser will download the script as a raw text file instead of injecting it directly.
