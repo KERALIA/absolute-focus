@@ -1,2 +1,51 @@
-# absolute-focus
-An advanced, dual-layer userscript that enforces global window focus and document visibility states. Actively hooks and sanitizes outgoing backend API telemetry payloads (Fetch, XHR, sendBeacon) to block polling loops and silences frontend proctoring elements.
+# Absolute Focus (Anti-Frontend & Backend Edition)
+
+A premium, dual-layer userscript engineered to enforce persistent tab visibility flags and active window focus execution contexts globally. Unlike standard focus utilities, **Absolute Focus** actively intercepts both client-side DOM layout tracking and outgoing backend network telemetry streams to guarantee complete environmental containment.
+
+---
+
+## 💾 Installation
+
+1. Install a userscript manager extension such as [Tampermonkey](https://www.tampermonkey.net/) or Violentmonkey.
+2. Click [here](https://github.com/KERALIA/absolute-focus/raw/main/absolute-focus.user.js) to instantly download and install the userscript.
+3. Toggle the script status to **ON** via your Tampermonkey Dashboard.
+
+---
+
+## ⚡ The Mitigation Architecture
+
+Modern automated evaluation suites and analytics platforms utilize two main methods to detect when a user switches tabs, minimizes a window, or exits the browser viewport:
+
+### 1. The Local Event Loop (Frontend)
+Websites bind capturing event listeners to structural layout components to trigger immediate UI warnings, lockouts, or local modal freezes whenever `blur`, `mouseleave`, or `visibilitychange` flags occur. 
+
+### 2. Asynchronous Polling Loops (Backend Tracking Bypass)
+To counter basic userscripts that drop event listeners, modern tracking scripts run background execution routines (`setInterval`) that constantly poll properties like `document.visibilityState` or window coordinates. These metrics are compiled into an array string and quietly dispatched to remote data centers using synchronous hooks like `navigator.sendBeacon` (frequently executed right as you leave a tab), `window.fetch`, or standard `XMLHttpRequest` (XHR) APIs.
+
+**Absolute Focus neutralizes both strategies completely.**
+
+---
+
+## 🛠️ Key Architectural Features
+
+* **Visibility API Lockout:** Exploits JavaScript object property descriptors to hardcode `document.visibilityState` as an immutable `"visible"` value, alongside setting `document.hidden = false`.
+* **Focus State Spoofing:** Suppresses the native `window.onblur` property entirely, forcing window evaluation states to continuously return a positive value via `document.hasFocus()`.
+* **Telemetry Payload Sanitization:** Hooks into network transit channels. If an outgoing string matrix contains telemetry indicators (`"blur"`, `"hidden"`, or `"visibilitychange"`), the payload is dynamically parsed and modified to clean state indicators (`"focus"` or `"visible"`) before it touches remote server endpoints.
+* **Server-Side Request Mocking:** Intercepts endpoints featuring keywords like `/telemetry`, `/proctor`, or `/monitoring` and maps them directly to fake a successful delivery status (`HTTP 200 OK`) right inside your browser console, dropping the network packet entirely.
+* **Aggressive CSS Structural Cloak:** Injects a recurring styling layout rule targeted directly at generic naming syntax (e.g., classes/IDs matching `warning`, `modal`, `proctor`, or `alert`) to render custom UI warning cards completely hidden, transparent, and non-clickable.
+
+---
+
+## 🧠 Technical Breakdown
+
+### Outgoing Data Stream Filtering
+By intercepting standard API call environments, the script enforces strict rules on raw payload transit:
+
+```javascript
+// Example logic of the background network filter
+const sanitizeTelemetryPayload = (data) => {
+    if (typeof data === 'string' && (data.includes('blur') || data.includes('hidden'))) {
+        return data.replace(/"blur"/g, '"focus"').replace(/"hidden"/g, '"visible"');
+    }
+    return data;
+};
