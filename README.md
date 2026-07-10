@@ -19,7 +19,7 @@ This utility was developed to address critical limitations in modern web archite
 > ⚠️ **CRITICAL REQUIREMENT:** You **MUST** ensure Tampermonkey is installed and properly configured in Google Chrome, Chromium-based browsers (such as Brave, Edge, Opera), or Mozilla Firefox using Steps 1 and 2 *before* clicking the installation link in Step 3. If you bypass the extension setup, the browser will download the script as a raw text file instead of injecting it directly.
 
 ### Step 1: Install Tampermonkey First
-Make sure you have a compatible userscript manager installed on your browser:
+Make sure you have a compatible userscript manager installed on your browser :
 * Download and install the [Tampermonkey Browser Extension](https://www.tampermonkey.net/).
 
 ### Step 2: Configure Extension Permissions (Required)
