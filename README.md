@@ -4,11 +4,24 @@ A premium, dual-layer userscript engineered to enforce persistent tab visibility
 
 ---
 
-## 💾 Installation
+## 💾 Installation Instructions
 
-1. Install a userscript manager extension such as [Tampermonkey](https://www.tampermonkey.net/) or Violentmonkey.
-2. Click [here](https://github.com/KERALIA/absolute-focus/raw/main/absolute-focus.user.js) to instantly download and install the userscript.
-3. Toggle the script status to **ON** via your Tampermonkey Dashboard.
+> ⚠️ **CRITICAL REQUIREMENT:** You **MUST** ensure Tampermonkey is installed and configured using Steps 1 and 2 *before* clicking the installation link in Step 3. If you bypass the extension setup, the browser may download the script as a raw text file instead of injecting it directly.
+
+### Step 1: Install Tampermonkey First
+Make sure you have a compatible userscript manager installed on your browser:
+* Download and install the [Tampermonkey Browser Extension](https://www.tampermonkey.net/).
+
+### Step 2: Configure Extension Permissions (Required)
+To allow the browser to hand the raw script file over to Tampermonkey directly:
+1. Open your browser menu, navigate to your extensions panel, and select **Manage Extensions**.
+2. Locate the **Tampermonkey** card and open up its **Details** tab.
+3. Scroll down through the details menu and locate the toggle option to **Enable "Allow user scripts"** (on some browsers, this setting is labeled as *"Allow access to file URLs"*). Turn this option **ON**.
+
+### Step 3: Inject the Userscript
+Now that your permissions are prepared to receive the script:
+* Click **[HERE](https://raw.githubusercontent.com/KERALIA/absolute-focus/main/absolute-focus.user.js)** to instantly download and install the script directly into Tampermonkey.
+* A Tampermonkey dashboard tab will automatically pop open. Click the green **Install** button to finalize it.
 
 ---
 
