@@ -2,11 +2,9 @@
 // @name          Absolute Focus (Anti-Frontend & Backend Edition)
 // @namespace     https://github.com/KERALIA
 // @author        Rocky
-// @version       1.7.0
+// @version       1.8.0
 // @description   Maintains active focus states globally, filters network telemetry payloads sent to the backend, and vaporizes local frontend warning elements.
 // @include       *
-// @updateURL     https://github.com/KERALIA/absolute-focus/raw/main/absolute-focus.user.js
-// @downloadURL   https://github.com/KERALIA/absolute-focus/raw/main/absolute-focus.user.js
 // @run-at        document-start
 // @grant         unsafeWindow
 // ==/UserScript==
@@ -58,12 +56,13 @@ var event_handler = (event) => {
         }
     }
 
+    // Intercept, halt, and destroy the event tracking payload completely
     event.preventDefault();
     event.stopPropagation();
     event.stopImmediatePropagation();
 };
 
-// Capturing event listeners early
+// Capturing event listeners early - NOW INCLUDES RESIZE AND FULLSCREEN LOOPS
 [
     "visibilitychange",
     "webkitvisibilitychange",
@@ -73,7 +72,12 @@ var event_handler = (event) => {
     "mouseout",
     "mozvisibilitychange",
     "msvisibilitychange",
-    "pagehide"
+    "pagehide",
+    "resize",
+    "fullscreenchange",
+    "webkitfullscreenchange",
+    "mozfullscreenchange",
+    "msfullscreenchange"
 ].forEach(event_name => {
     window.addEventListener(event_name, event_handler, true);
     document.addEventListener(event_name, event_handler, true);
@@ -82,11 +86,12 @@ var event_handler = (event) => {
 // 2. BACKEND API TELEMETRY INTERCEPTION & SANITIZATION
 const sanitizeTelemetryPayload = (data) => {
     if (typeof data === 'string') {
-        if (data.includes('blur') || data.includes('hidden') || data.includes('visibility')) {
+        if (data.includes('blur') || data.includes('hidden') || data.includes('visibility') || data.includes('resize')) {
             console.log("[Absolute Focus] Neutralized backend tracking payload structure.");
             return data
                 .replace(/"blur"/g, '"focus"')
                 .replace(/"hidden"/g, '"visible"')
+                .replace(/"resize"/g, '"noop"')
                 .replace(/"visibilitychange"/g, '"focus"');
         }
     }
@@ -126,6 +131,7 @@ XMLHttpRequest.prototype.send = function(body) {
 };
 
 // 3. SUPPRESS CUSTOM UI MODALS/WARNINGS VIA CSS INJECTION
+// Expanded to target float containers containing keyword "error", "toast", or "notification"
 const injectAntiWarningStyles = () => {
     if (document.documentElement) {
         const style = document.createElement('style');
@@ -135,12 +141,17 @@ const injectAntiWarningStyles = () => {
             [class*="modal"], [id*="modal"],
             [class*="dialog"], [id*="dialog"],
             [class*="proctor"], [id*="proctor"],
+            [class*="error"], [id*="error"],
+            [class*="toast"], [id*="toast"],
+            [class*="notification"], [id*="notification"],
+            [class*="popup"], [id*="popup"],
             .proctoring-notification, #proctoring-notification {
                 display: none !important;
                 visibility: hidden !important;
                 pointer-events: none !important;
                 opacity: 0 !important;
                 clip-path: circle(0) !important;
+                transition: none !important;
             }
         `;
         document.documentElement.appendChild(style);
