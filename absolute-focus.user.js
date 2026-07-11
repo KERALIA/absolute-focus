@@ -2,7 +2,7 @@
 // @name          Absolute Focus
 // @namespace     https://github.com/KERALIA
 // @author        Rocky
-// @version       3.0.1
+// @version       3.0.2
 // @description   Maintains persistent document visibility and active window focus context. Blocks tab-switch telemetry, proctoring signals, and visibility polling loops.
 // @include       *
 // @run-at        document-start
