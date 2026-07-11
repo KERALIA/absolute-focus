@@ -2,7 +2,7 @@
 // @name          Absolute Focus
 // @namespace     https://github.com/KERALIA
 // @author        Rocky
-// @version       3.0.0
+// @version       3.0.1
 // @description   Maintains persistent document visibility and active window focus context. Blocks tab-switch telemetry, proctoring signals, and visibility polling loops.
 // @include       *
 // @run-at        document-start
@@ -38,16 +38,6 @@ const blurWhitelist = [
     HTMLParagraphElement,
 ]
 
-// element constructors to block mouseleave and mouseout events on
-const hoverBlacklist = [
-    HTMLIFrameElement,
-    HTMLHtmlElement,
-    HTMLBodyElement,
-    HTMLHeadElement,
-    HTMLFrameSetElement, // obsolete but included for completeness
-    HTMLFrameElement     // obsolete but included for completeness
-];
-
 var event_handler = (event) => {
     // if the event is blur, and the target is a whitelisted type, allow it
     if (event.type === 'blur' &&
@@ -55,11 +45,7 @@ var event_handler = (event) => {
             event.target.classList?.contains('ql-editor')))) { // quill js fix
         return;
     }
-    // if the event is mouseleave or mouseout, and the target is NOT a blacklisted type, allow it
-    if (['mouseleave', 'mouseout'].includes(event.type) &&
-        !hoverBlacklist.some(type => event.target instanceof type)) {
-        return;
-    }
+    // block all mouseleave and mouseout events — prevents any mouse-exit tracking
     event.preventDefault();
     event.stopPropagation();
     event.stopImmediatePropagation();
