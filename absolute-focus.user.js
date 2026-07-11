@@ -1,75 +1,107 @@
 // ==UserScript==
-// @name          Workspace Focus Continuity Utility
+// @name          Absolute Focus
 // @namespace     https://github.com/KERALIA
 // @author        Rocky
-// @version       2.0.0
-// @description   Maintains standard document visibility states and basic focus contexts globally to prevent background task pausing.
+// @version       3.0.0
+// @description   Maintains persistent document visibility and active window focus context. Blocks tab-switch telemetry, proctoring signals, and visibility polling loops.
 // @include       *
 // @run-at        document-start
 // @grant         unsafeWindow
 // ==/UserScript==
 
-// 1. RESET BASIC WINDOW FOCUS PROPERTIES
 unsafeWindow.onblur = null;
 unsafeWindow.blurred = false;
 
-if (unsafeWindow.document) {
-    unsafeWindow.document.hasFocus = () => true;
-}
-if (unsafeWindow.window) {
-    unsafeWindow.window.onFocus = () => true;
-}
+unsafeWindow.document.hasFocus = () => true;
+unsafeWindow.window.onFocus = () => true;
 
-// 2. STABILIZE PAGE VISIBILITY STATES
-// Standardizes core visibility properties without strict-mode overrides
+// kill dom property names
 [
     "hidden",
     "mozHidden",
     "msHidden",
     "webkitHidden"
 ].forEach(prop_name => {
-    try {
-        Object.defineProperty(document, prop_name, { value: false, configurable: true, writable: true });
-    } catch (e) {
-        console.log("Property preservation skipped:", prop_name);
-    }
-});
+    Object.defineProperty(document, prop_name, {value: false});
+})
 
-try {
-    Object.defineProperty(document, "visibilityState", { get: () => "visible", configurable: true });
-    Object.defineProperty(document, "webkitVisibilityState", { get: () => "visible", configurable: true });
-} catch (e) {
-    console.log("Visibility state preservation skipped");
-}
+Object.defineProperty(document, "visibilityState", {get: () => "visible"});
+Object.defineProperty(document, "webkitVisibilityState", {get: () => "visible"});
 
 unsafeWindow.document.onvisibilitychange = undefined;
 
-// 3. PASSIVE EVENT HANDLING
-// Handles basic peripheral exit events without halting critical layout cycles
-const targetEvents = [
-    "visibilitychange",
-    "webkitvisibilitychange",
-    "mozvisibilitychange",
-    "msvisibilitychange",
-    "blur",
-    "mouseleave",
-    "mouseout"
+// element constructors to allow blur events on
+const blurWhitelist = [
+    HTMLInputElement,
+    HTMLAnchorElement,
+    HTMLSpanElement,
+    HTMLParagraphElement,
+]
+
+// element constructors to block mouseleave and mouseout events on
+const hoverBlacklist = [
+    HTMLIFrameElement,
+    HTMLHtmlElement,
+    HTMLBodyElement,
+    HTMLHeadElement,
+    HTMLFrameSetElement, // obsolete but included for completeness
+    HTMLFrameElement     // obsolete but included for completeness
 ];
 
-const passiveEventHandler = (event) => {
-    // Allows standard form controls to retain focus naturally
-    const formInputs = [HTMLInputElement, HTMLTextAreaElement, HTMLSelectElement];
-    if (formInputs.some(type => event.target instanceof type)) {
+var event_handler = (event) => {
+    // if the event is blur, and the target is a whitelisted type, allow it
+    if (event.type === 'blur' &&
+        ((blurWhitelist.some(type => event.target instanceof type) ||
+            event.target.classList?.contains('ql-editor')))) { // quill js fix
         return;
     }
-
-    // Prevents standard background tab suspension triggers
-    if (event.type === 'visibilitychange' || event.type === 'blur') {
-        event.stopPropagation();
+    // if the event is mouseleave or mouseout, and the target is NOT a blacklisted type, allow it
+    if (['mouseleave', 'mouseout'].includes(event.type) &&
+        !hoverBlacklist.some(type => event.target instanceof type)) {
+        return;
     }
-};
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+}
 
-targetEvents.forEach(event_name => {
-    window.addEventListener(event_name, passiveEventHandler, true);
-    document.addEventListener(event_name, passiveEventHandler, true);
-});
+// kill event listeners
+[
+    "visibilitychange",
+    "webkitvisibilitychange",
+    "blur",
+    "hasFocus",
+    "mouseleave",
+    "mouseout",
+    "mozvisibilitychange",
+    "msvisibilitychange"
+].forEach(event_name => {
+    window.addEventListener(event_name, event_handler, true);
+    document.addEventListener(event_name, event_handler, true);
+})
+
+// ── Block postMessage violation alerts ────────────────────────────────────────
+// Proctoring iframes send tab-switch / violation signals via window.postMessage.
+// We intercept in the capture phase (runs before any site listener) and silently
+// drop messages that contain known violation keywords.
+const VIOLATION_KEYWORDS = [
+    'blur', 'hidden', 'visibilitychange',
+    'tabswitch', 'tab_switch', 'tab-switch',
+    'focuslost', 'focus_lost', 'focuschange',
+    'violation', 'proctor', 'proctoring',
+    'inactive', 'monitoring', 'warning',
+    'windowblur', 'window_blur'
+];
+
+window.addEventListener('message', function (event) {
+    try {
+        const raw = (typeof event.data === 'string')
+            ? event.data
+            : JSON.stringify(event.data);
+
+        if (VIOLATION_KEYWORDS.some(k => raw.toLowerCase().includes(k))) {
+            event.stopImmediatePropagation();
+            event.stopPropagation();
+        }
+    } catch (e) { /* ignore non-serialisable messages */ }
+}, true); // capture: true — fires before the site's own listeners
